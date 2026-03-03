@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Traffic Violation Detection System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-grid"></div>
+    <div class="scanline"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <span class="signal red"></span>
+                    <span class="signal yellow"></span>
+                    <span class="signal green active"></span>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">TRAFFICAI</span>
+                    <span class="logo-sub">Violation Detection & Monitoring System</span>
+                </div>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="dot pulse green"></span>
+                    <span id="systemStatus">SYSTEM ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span class="dot pulse yellow"></span>
+                    <span id="aiStatus">AI MODEL READY</span>
+                </div>
+                <div class="clock" id="clock"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-num" id="totalDetected">0</div>
+                <div class="stat-label">Total Violations Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="totalFines">₹0</div>
+                <div class="stat-label">Fines Collected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="aiAccuracy">96.4%</div>
+                <div class="stat-label">AI Detection Accuracy</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="activeVehicles">0</div>
+                <div class="stat-label">Vehicles Monitored</div>
+            </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="panel-grid">
+
+            <!-- Left: Detection Panel -->
+            <div class="panel detection-panel">
+                <div class="panel-header">
+                    <span class="panel-title">🎯 Violation Detection</span>
+                    <span class="badge">AI-POWERED</span>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Vehicle Registration Number</label>
+                    <input type="text" id="vehicleNumber" class="form-input" placeholder="e.g. TS09AB1234" maxlength="12">
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Violation Type</label>
+                    <select id="violationType" class="form-input">
+                        <option value="">-- Select Violation --</option>
+                        <option value="No Helmet" data-fine="500">🪖 No Helmet</option>
+                        <option value="Signal Jump" data-fine="1000">🚦 Signal Jump</option>
+                        <option value="Over Speed" data-fine="2000">⚡ Over Speed</option>
+                        <option value="Triple Riding" data-fine="700">👥 Triple Riding</option>
+                        <option value="Wrong Route Driving" data-fine="500">🛣️ Wrong Route Driving</option>
+                        <option value="No Seatbelt" data-fine="500">🔒 No Seatbelt</option>
+                        <option value="Mobile Usage" data-fine="1500">📱 Mobile While Driving</option>
+                        <option value="Drunk Driving" data-fine="5000">🍺 Drunk Driving</option>
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Upload Vehicle Image / Video Frame</label>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Drag & drop or click to upload</div>
+                        <div class="upload-sub">Supports JPG, PNG, MP4 frames</div>
+                        <input type="file" id="vehicleImage" accept="image/*,video/*" style="display:none">
+                    </div>
+                    <div id="imagePreviewWrap" style="display:none">
+                        <img id="imagePreview" class="img-preview" alt="Preview">
+                        <div id="aiOverlay" class="ai-overlay"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Location / Camera ID</label>
+                    <input type="text" id="location" class="form-input" placeholder="e.g. Charminar Junction, Cam-07">
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">Officer ID (Optional)</label>
+                    <input type="text" id="officerId" class="form-input" placeholder="e.g. AP-OFF-2024-001">
+                </div>
+
+                <div class="ai-scan-section" id="aiScanSection" style="display:none">
+                    <div class="scan-bar">
+                        <div class="scan-progress" id="scanProgress"></div>
+                    </div>
+                    <div class="scan-text" id="scanText">Initializing AI scan...</div>
+                </div>
+
+                <button class="detect-btn" id="detectBtn" onclick="detectViolation()">
+                    <span class="btn-icon">🤖</span>
+                    <span class="btn-text">DETECT VIOLATION</span>
+                </button>
+            </div>
+
+            <!-- Right: Result & History Panel -->
+            <div class="panel right-panel">
+
+                <!-- AI Result -->
+                <div class="panel result-panel" id="resultPanel" style="display:none">
+                    <div class="panel-header">
+                        <span class="panel-title">📋 Detection Result</span>
+                        <span class="badge" id="resultBadge">VIOLATION DETECTED</span>
+                    </div>
+                    <div id="result"></div>
+                    <div class="action-buttons" id="actionButtons"></div>
+                </div>
+
+                <!-- AI Analysis -->
+                <div class="panel ai-panel" id="aiAnalysisPanel" style="display:none">
+                    <div class="panel-header">
+                        <span class="panel-title">🧠 AI Analysis Report</span>
+                    </div>
+                    <div id="aiAnalysis"></div>
+                </div>
+
+                <!-- Violation History -->
+                <div class="panel history-panel">
+                    <div class="panel-header">
+                        <span class="panel-title">📊 Violation History</span>
+                        <button class="clear-btn" onclick="clearHistory()">Clear All</button>
+                    </div>
+                    <div id="violationHistory">
+                        <div class="empty-state">No violations recorded yet. Start detecting!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Challan Modal -->
+        <div id="challanModal" class="modal" style="display:none">
+            <div class="modal-content">
+                <div class="challan-header">
+                    <div class="challan-logo">🚔 TRAFFIC POLICE</div>
+                    <div class="challan-title">E-CHALLAN / VIOLATION NOTICE</div>
+                    <div class="challan-num" id="challanNum"></div>
+                </div>
+                <div id="challanBody"></div>
+                <div class="challan-footer">
+                    <p>Pay online at <strong>echallan.tspolice.gov.in</strong> within 30 days to avoid legal action.</p>
+                    <div class="challan-actions">
+                        <button class="challan-btn print" onclick="window.print()">🖨️ Print Challan</button>
+                        <button class="challan-btn download" onclick="downloadChallan()">⬇️ Download PDF</button>
+                        <button class="challan-btn close" onclick="closeChallan()">✕ Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Backend Setup Info Modal -->
+    <div id="backendModal" class="modal" style="display:none">
+        <div class="modal-content backend-modal">
+            <h2>⚙️ Backend Setup Instructions</h2>
+            <div id="backendInfo"></div>
+            <button class="challan-btn close" onclick="document.getElementById('backendModal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <span>TrafficAI Detection System v2.0 &nbsp;|&nbsp; AI-Powered &nbsp;|&nbsp; <a href="#" onclick="showBackendInfo()">⚙️ Backend Setup Guide</a></span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
